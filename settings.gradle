@@ -1,0 +1,2 @@
+include ':library-map-google'
+rootProject.name = "map-google"
