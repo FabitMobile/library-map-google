@@ -1,6 +1,8 @@
 package ru.fabit.google
 
+import com.google.android.gms.maps.model.LatLng
+import kotlinx.coroutines.flow.Flow
+
 interface LocationSource {
-    fun startLocationUpdates(locationListener: LocationListener)
-    fun stopLocationUpdates()
+    suspend fun locationUpdateEvents(): Flow<LatLng>
 }

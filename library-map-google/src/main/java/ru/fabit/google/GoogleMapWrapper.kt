@@ -12,6 +12,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.*
+import kotlinx.coroutines.*
 import ru.fabit.map.dependencies.factory.GeometryColorFactory
 import ru.fabit.map.dependencies.factory.MarkerBitmapFactory
 import ru.fabit.map.internal.domain.entity.*
@@ -54,6 +55,7 @@ class GoogleMapWrapper(
     private val DEFAULT_ZOOM: Float = 18f
     private var offsetBottom: Float = 0f
     private var isAnimationRun: Boolean = false
+    private val geolocationScope = CoroutineScope(Dispatchers.Main)
 
     init {
         val mainLooper = getMainLooper()
@@ -258,17 +260,16 @@ class GoogleMapWrapper(
         isEnableLocation = permissionProvider.isLocationPermissionGranted() && enable == true
         googleMap?.isMyLocationEnabled = isEnableLocation
         if (isEnableLocation) {
-            locationSource.startLocationUpdates(object : LocationListener {
-                override fun onNewLocation(latLng: LatLng) {
+            geolocationScope.launch {
+                locationSource.locationUpdateEvents().collect { latLng ->
                     userLocation = latLng
                     mapLocationListeners.forEach { listener ->
                         listener.onLocationUpdate(MapCoordinates(latLng.latitude, latLng.longitude))
                     }
                 }
             }
-            )
         } else {
-            locationSource.stopLocationUpdates()
+            geolocationScope.cancel()
         }
     }
 
